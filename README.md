@@ -25,12 +25,21 @@ with Java 11, OkHttp and Jackson.
 ## Usage
 
 ### Gradle include
+Include JitPack repository in the `build.gradle` file:
+```java
+repositories {
+    ...
+    maven { url 'https://jitpack.io' }
+}
+```
+
+Add the dependency:
 
 ```java
 implementation 'com.github.ExidCuter:DockerRegistryV2Wrapper:master-SNAPSHOT'
 ```
 
-### Code
+### Example code
 
 ```java
 DockerRepository dockerRepository = new DockerRepository(
