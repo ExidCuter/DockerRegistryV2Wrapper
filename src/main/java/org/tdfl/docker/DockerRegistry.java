@@ -21,7 +21,7 @@ import java.io.IOException;
 
 @Getter
 @Setter
-public class DockerRepository {
+public class DockerRegistry {
 
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
@@ -30,7 +30,7 @@ public class DockerRepository {
 
     private LoginCredentials loginCredentials;
 
-    public DockerRepository(LoginCredentials loginCredentials) {
+    public DockerRegistry(LoginCredentials loginCredentials) {
         this.loginCredentials = loginCredentials;
 
         if (loginCredentials.getUsername() != null && loginCredentials.getPassword() != null) {

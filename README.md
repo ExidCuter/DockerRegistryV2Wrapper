@@ -42,7 +42,7 @@ implementation 'com.github.ExidCuter:DockerRegistryV2Wrapper:master-SNAPSHOT'
 ### Example code
 
 ```java
-DockerRepository dockerRepository = new DockerRepository(
+DockerRepository dockerRegistry = new DockerRegistry(
         LoginCredentials.builder()
                 .username("username")
                 .password("password")
@@ -50,11 +50,11 @@ DockerRepository dockerRepository = new DockerRepository(
                 .build()
 );
 
-Catalog catalog = dockerRepository.getCatalog();
+Catalog catalog = dockerRegistry.getCatalog();
 
-Tags tags = dockerRepository.getTags("amazoncorretto");
+Tags tags = dockerRegistry.getTags("amazoncorretto");
 
-Manifest manifest = dockerRepository.getManifest("amazoncorretto", "11");
+Manifest manifest = dockerRegistry.getManifest("amazoncorretto", "11");
 
-dockerRepository.deleteImage("amazoncorretto", "11");
+dockerRegistry.deleteImage("amazoncorretto", "11");
 ```
