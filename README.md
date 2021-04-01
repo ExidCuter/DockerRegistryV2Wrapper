@@ -12,6 +12,7 @@ with Java 11, OkHttp and Jackson.
 | /v2/_catalog                     | GET         | [link](https://docs.docker.com/registry/spec/api/#catalog)           |
 | /v2/<name>/tags/list             | GET         | [link](https://docs.docker.com/registry/spec/api/#tags)              |
 | /v2/<name>/manifests/<reference> | GET         | [link](https://docs.docker.com/registry/spec/api/#manifest)          |
+| /v2/<name>/manifests/<reference> | HEAD        | [link](https://docs.docker.com/registry/spec/api/#existing-manifests) |
 | /v2/<name>/manifests/<reference> | DELETE      | [link](https://docs.docker.com/registry/spec/api/#deleting-an-image) |
 
 ### Errors

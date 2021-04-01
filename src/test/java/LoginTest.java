@@ -1,3 +1,4 @@
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.tdfl.docker.DockerRegistry;
 import org.tdfl.docker.model.Catalog;
@@ -21,7 +22,6 @@ public class LoginTest {
         assert catalog != null;
     }
 
-
     @Test
     public void test_getTags() {
         Catalog catalog = dockerRegistry.getCatalog();
@@ -40,5 +40,11 @@ public class LoginTest {
         Manifest manifest = dockerRegistry.getManifest(catalog.getRepositories().get(0), tags.getTags().get(0));
 
         assert manifest != null;
+    }
+
+    @Test
+    @Disabled
+    public void test_deleteImage() {
+        dockerRegistry.deleteImage("umu-be", "develop-20201004-81bd5cd4");
     }
 }
