@@ -20,6 +20,7 @@ import org.tdfl.docker.model.RegistryErrors;
 import org.tdfl.docker.model.Tags;
 
 import java.io.IOException;
+import java.time.Duration;
 
 @Getter
 @Setter
@@ -40,7 +41,22 @@ public class DockerRegistry {
                     .addInterceptor(new BasicAuthInterceptor(loginCredentials.getUsername(), loginCredentials.getPassword()))
                     .build();
         } else {
-            client = new OkHttpClient();
+            this.client = new OkHttpClient();
+        }
+    }
+
+    public DockerRegistry(LoginCredentials loginCredentials, Duration timeout) {
+        this.loginCredentials = loginCredentials;
+
+        if (loginCredentials.getUsername() != null && loginCredentials.getPassword() != null) {
+            this.client = new OkHttpClient.Builder()
+                    .readTimeout(timeout)
+                    .addInterceptor(new BasicAuthInterceptor(loginCredentials.getUsername(), loginCredentials.getPassword()))
+                    .build();
+        } else {
+            this.client = new OkHttpClient.Builder()
+                    .readTimeout(timeout)
+                    .build();
         }
     }
 
