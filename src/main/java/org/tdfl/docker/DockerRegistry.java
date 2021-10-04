@@ -19,7 +19,15 @@ import org.tdfl.docker.model.Manifest;
 import org.tdfl.docker.model.RegistryErrors;
 import org.tdfl.docker.model.Tags;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 
 @Getter
@@ -36,27 +44,92 @@ public class DockerRegistry {
     public DockerRegistry(LoginCredentials loginCredentials) {
         this.loginCredentials = loginCredentials;
 
-        if (loginCredentials.getUsername() != null && loginCredentials.getPassword() != null) {
-            this.client = new OkHttpClient.Builder()
-                    .addInterceptor(new BasicAuthInterceptor(loginCredentials.getUsername(), loginCredentials.getPassword()))
-                    .build();
-        } else {
-            this.client = new OkHttpClient();
-        }
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+
+        builder = addCredentialsToBuilder(builder);
+
+        this.client = builder.build();
+    }
+
+    public DockerRegistry(LoginCredentials loginCredentials, boolean unsafe) {
+        this.loginCredentials = loginCredentials;
+
+        OkHttpClient.Builder builder = unsafe ? getUnsafeOkHttpClientBuilder() : new OkHttpClient.Builder();
+
+        builder = addCredentialsToBuilder(builder);
+
+        this.client = builder.build();
     }
 
     public DockerRegistry(LoginCredentials loginCredentials, Duration timeout) {
         this.loginCredentials = loginCredentials;
 
+        OkHttpClient.Builder builder = new OkHttpClient.Builder()
+                .readTimeout(timeout);
+
+        builder = addCredentialsToBuilder(builder);
+
+        this.client = builder.build();
+    }
+
+    public DockerRegistry(LoginCredentials loginCredentials, Duration timeout, boolean unsafe) {
+        this.loginCredentials = loginCredentials;
+
+        OkHttpClient.Builder builder = unsafe ? getUnsafeOkHttpClientBuilder() : new OkHttpClient.Builder()
+                .readTimeout(timeout);
+
+        builder = addCredentialsToBuilder(builder);
+
+        this.client = builder.build();
+    }
+
+    private OkHttpClient.Builder addCredentialsToBuilder(OkHttpClient.Builder builder) {
         if (loginCredentials.getUsername() != null && loginCredentials.getPassword() != null) {
-            this.client = new OkHttpClient.Builder()
-                    .readTimeout(timeout)
-                    .addInterceptor(new BasicAuthInterceptor(loginCredentials.getUsername(), loginCredentials.getPassword()))
-                    .build();
-        } else {
-            this.client = new OkHttpClient.Builder()
-                    .readTimeout(timeout)
-                    .build();
+            builder = builder.addInterceptor(new BasicAuthInterceptor(loginCredentials.getUsername(), loginCredentials.getPassword()));
+        }
+
+        return builder;
+    }
+
+    private static OkHttpClient.Builder getUnsafeOkHttpClientBuilder() {
+        try {
+            // Create a trust manager that does not validate certificate chains
+            final TrustManager[] trustAllCerts = new TrustManager[]{
+                    new X509TrustManager() {
+                        @Override
+                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain,
+                                                       String authType) throws CertificateException {
+                        }
+
+                        @Override
+                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain,
+                                                       String authType) throws CertificateException {
+                        }
+
+                        @Override
+                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                            return new X509Certificate[0];
+                        }
+                    }
+            };
+
+            // Install the all-trusting trust manager
+            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+            // Create an ssl socket factory with our all-trusting manager
+            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+            return new OkHttpClient.Builder()
+                    .sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0])
+                    .hostnameVerifier(new HostnameVerifier() {
+                        @Override
+                        public boolean verify(String hostname, SSLSession session) {
+                            return true;
+                        }
+                    });
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -134,6 +207,7 @@ public class DockerRegistry {
 
         return response.header("Etag").replaceAll("\"", "");
     }
+
     private <T> T getValueFromResponse(Response response, Class<T> valueType) throws RegistryErrorException, IOException {
         switch (response.code()) {
             case 200:
