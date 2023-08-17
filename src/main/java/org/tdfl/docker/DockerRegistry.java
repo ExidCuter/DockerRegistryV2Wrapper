@@ -4,28 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
 import org.tdfl.docker.error.AuthException;
 import org.tdfl.docker.error.NotFoundException;
 import org.tdfl.docker.error.RegistryErrorException;
 import org.tdfl.docker.http.BasicAuthInterceptor;
-import org.tdfl.docker.model.Catalog;
 import org.tdfl.docker.model.Error;
-import org.tdfl.docker.model.LoginCredentials;
-import org.tdfl.docker.model.Manifest;
-import org.tdfl.docker.model.RegistryErrors;
-import org.tdfl.docker.model.Tags;
+import org.tdfl.docker.model.*;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.*;
 import java.io.IOException;
+import java.security.InvalidParameterException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
@@ -135,8 +124,28 @@ public class DockerRegistry {
 
     @SneakyThrows
     public Catalog getCatalog() {
+        return this.getCatalog(0, 100);
+    }
+
+    @SneakyThrows
+    public Catalog getCatalog(int pageNumber, int pageSize) {
+        if (pageNumber < 0) {
+            throw new InvalidParameterException("pageNumber is supposed to be zero or greater");
+        }
+
+        if (pageSize < 1) {
+            throw new InvalidParameterException("pageNumber is supposed to be a positive number");
+        }
+
+        var catalogUrl = HttpUrl.parse(this.loginCredentials.getRegistryURL() + "/v2/_catalog")
+                .newBuilder()
+                .addQueryParameter("n", Integer.toString(pageSize))
+                .addQueryParameter("last", Integer.toString(pageSize * pageNumber))
+                .build();
+
+
         Request request = new Request.Builder()
-                .url(this.loginCredentials.getRegistryURL() + "/v2/_catalog")
+                .url(catalogUrl.url())
                 .addHeader("Content-Type", "application/json")
                 .get()
                 .build();
@@ -148,8 +157,27 @@ public class DockerRegistry {
 
     @SneakyThrows
     public Tags getTags(String repositoryName) {
+        return this.getTags(repositoryName, 0, 100);
+    }
+
+    @SneakyThrows
+    public Tags getTags(String repositoryName, int pageNumber, int pageSize) {
+        if (pageNumber < 0) {
+            throw new InvalidParameterException("pageNumber is supposed to be zero or greater");
+        }
+
+        if (pageSize < 1) {
+            throw new InvalidParameterException("pageNumber is supposed to be a positive number");
+        }
+
+        var tagUrl = HttpUrl.parse(this.loginCredentials.getRegistryURL() + "/v2/" + repositoryName + "/tags/list")
+                .newBuilder()
+                .addQueryParameter("n", Integer.toString(pageSize))
+                .addQueryParameter("last", Integer.toString(pageSize * pageNumber))
+                .build();
+
         Request request = new Request.Builder()
-                .url(this.loginCredentials.getRegistryURL() + "/v2/" + repositoryName + "/tags/list")
+                .url(tagUrl.url())
                 .addHeader("Content-Type", "application/json")
                 .get()
                 .build();

@@ -17,7 +17,7 @@ public class LoginTest {
 
     @Test
     public void test_getCatalog() {
-        Catalog catalog = dockerRegistry.getCatalog();
+        Catalog catalog = dockerRegistry.getCatalog(0, 400);
 
         assert catalog != null;
     }
@@ -26,7 +26,7 @@ public class LoginTest {
     public void test_getTags() {
         Catalog catalog = dockerRegistry.getCatalog();
 
-        Tags tags = dockerRegistry.getTags(catalog.getRepositories().get(0));
+        Tags tags = dockerRegistry.getTags(catalog.getRepositories().get(0), 0, 400);
 
         assert tags != null;
     }
