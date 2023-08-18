@@ -137,7 +137,7 @@ public class DockerRegistry {
             throw new InvalidParameterException("pageNumber is supposed to be a positive number");
         }
 
-        var catalogUrl = HttpUrl.parse(this.loginCredentials.getRegistryURL() + "/v2/_catalog")
+        HttpUrl catalogUrl = HttpUrl.parse(this.loginCredentials.getRegistryURL() + "/v2/_catalog")
                 .newBuilder()
                 .addQueryParameter("n", Integer.toString(pageSize))
                 .addQueryParameter("last", Integer.toString(pageSize * pageNumber))
@@ -170,7 +170,7 @@ public class DockerRegistry {
             throw new InvalidParameterException("pageNumber is supposed to be a positive number");
         }
 
-        var tagUrl = HttpUrl.parse(this.loginCredentials.getRegistryURL() + "/v2/" + repositoryName + "/tags/list")
+        HttpUrl tagUrl = HttpUrl.parse(this.loginCredentials.getRegistryURL() + "/v2/" + repositoryName + "/tags/list")
                 .newBuilder()
                 .addQueryParameter("n", Integer.toString(pageSize))
                 .addQueryParameter("last", Integer.toString(pageSize * pageNumber))
